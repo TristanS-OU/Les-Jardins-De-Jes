@@ -3,7 +3,6 @@
   'use strict';
   var d = document, root = d.documentElement;
   root.classList.remove('no-js');
-  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* barre de progression + en-tête */
   var bar = d.getElementById('progress'), hdr = d.querySelector('.hdr');
@@ -11,14 +10,12 @@
     var h = root.scrollHeight - root.clientHeight;
     if (bar) bar.style.transform = 'scaleX(' + (h > 0 ? Math.min(1, window.scrollY / h) : 0) + ')';
     if (hdr) hdr.classList.toggle('is-scrolled', window.scrollY > 24);
-    if (!reduce) {
-      var p = d.querySelectorAll('[data-parallax]');
-      for (var i = 0; i < p.length; i++) {
-        var r = p[i].getBoundingClientRect();
-        if (r.bottom < 0 || r.top > window.innerHeight) continue;
-        var k = parseFloat(p[i].getAttribute('data-parallax')) || 0.06;
-        p[i].style.transform = 'translateY(' + ((r.top + r.height / 2 - window.innerHeight / 2) * -k).toFixed(1) + 'px)';
-      }
+    var p = d.querySelectorAll('[data-parallax]');
+    for (var i = 0; i < p.length; i++) {
+      var r = p[i].getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight) continue;
+      var k = parseFloat(p[i].getAttribute('data-parallax')) || 0.06;
+      p[i].style.transform = 'translateY(' + ((r.top + r.height / 2 - window.innerHeight / 2) * -k).toFixed(1) + 'px)';
     }
   }
   var tick = false;
@@ -52,7 +49,6 @@
     var end = parseFloat(el.getAttribute('data-count')), done = false;
     function run() {
       if (done) return; done = true;
-      if (reduce) { el.textContent = end.toFixed(1).replace('.', ','); return; }
       var t0 = performance.now();
       (function step(t) {
         var k = Math.min(1, (t - t0) / 1600), v = end * (1 - Math.pow(1 - k, 3));
