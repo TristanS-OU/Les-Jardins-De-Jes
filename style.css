@@ -492,3 +492,8 @@ p{margin:0}
 /* v2.3 : aucune page ne doit être plus large que la fenêtre (sinon le navigateur la dézoome) */
 html,body{overflow-x:clip;max-width:100%}
 main{overflow-x:clip}
+/* v2.4 : correctif mobile */
+@media (max-width:1020px){
+  .hero .wrap,.phero .grid{grid-template-columns:minmax(0,1fr);gap:40px}
+  .hero-art{width:100%;max-width:520px;margin-inline:auto}
+}
