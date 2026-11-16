@@ -489,3 +489,6 @@ p{margin:0}
 @media (max-width:980px){.bagrid.arches .ba-fig{width:calc((100% - 34px)/2)}}
 @media (max-width:560px){.bagrid.arches .ba-fig{width:100%}}
 .hero{padding-top:64px}
+/* v2.3 : aucune page ne doit être plus large que la fenêtre (sinon le navigateur la dézoome) */
+html,body{overflow-x:clip;max-width:100%}
+main{overflow-x:clip}
