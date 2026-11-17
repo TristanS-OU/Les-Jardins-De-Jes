@@ -36,13 +36,36 @@
   }
 
   /* apparitions au scroll */
-  var targets = d.querySelectorAll('.rv,.rv-img,.chips,.ring-box');
+  /* Les .rv-img (photos en arche) sont entièrement coupées par clip-path tant qu'elles
+     n'ont pas la classe "in" : on observe donc leur parent, sinon elles restent invisibles. */
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var t = e.target;
+        if (t.classList.contains('rv-img')) {
+          t.classList.add('in');
+        } else {
+          t.classList.add('in');
+          t.querySelectorAll('.rv-img').forEach(function (img) { img.classList.add('in'); });
+        }
+        io.unobserve(t);
+      });
     }, { threshold: 0.14, rootMargin: '0px 0px -6% 0px' });
-    targets.forEach(function (t) { io.observe(t); });
-  } else { targets.forEach(function (t) { t.classList.add('in'); }); }
+    d.querySelectorAll('.rv,.rv-img,.chips,.ring-box').forEach(function (t) {
+      io.observe(t.classList.contains('rv-img') ? (t.parentElement || t) : t);
+    });
+  } else {
+    d.querySelectorAll('.rv,.rv-img,.chips,.ring-box').forEach(function (t) { t.classList.add('in'); });
+  }
+  /* filet de sécurité : tout ce qui est déjà à l'écran s'affiche quoi qu'il arrive */
+  setTimeout(function () {
+    var vh = window.innerHeight || d.documentElement.clientHeight;
+    d.querySelectorAll('.rv-img,.rv').forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.top < vh && r.bottom > 0) el.classList.add('in');
+    });
+  }, 1500);
 
   /* compteur de note */
   d.querySelectorAll('[data-count]').forEach(function (el) {
