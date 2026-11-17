@@ -152,11 +152,21 @@
     });
   }
 
-  /* formulaire (test : rien n'est envoyé) */
+  /* formulaire de devis (envoi via Web3Forms) */
   var form = d.getElementById('devis');
   if (form) {
     var sel = form.querySelector('select[name=prestation]'), other = form.querySelector('.other-wrap');
     if (sel && other) sel.addEventListener('change', function () { other.hidden = sel.value !== 'Autre'; });
+    var submitBtn = form.querySelector('button[type=submit]'), sendErr = null;
+    function showSendErr() {
+      if (!sendErr) {
+        sendErr = d.createElement('p');
+        sendErr.setAttribute('role', 'alert');
+        sendErr.style.cssText = 'color:#B23A2E;font-weight:700;margin-top:12px';
+        submitBtn.insertAdjacentElement('afterend', sendErr);
+      }
+      sendErr.textContent = 'L’envoi n’a pas fonctionné. Appelez-moi au 06 08 27 95 54.';
+    }
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var ok = true;
@@ -172,13 +182,45 @@
       });
       if (form.querySelector('.hp input').value) return; /* anti-spam */
       if (!ok) return;
-      form.querySelector('.ok').classList.add('show');
-      form.querySelector('button[type=submit]').disabled = true;
+      var data = {
+        access_key: '3539b9f5-019f-48ce-b4a9-4c29b1657aac',
+        subject: 'Nouvelle demande de devis - Les Jardins de JES',
+        from_name: 'Site Les Jardins de JES',
+        prenom: form.prenom.value.trim(),
+        telephone: form.telephone.value.trim(),
+        email: form.email.value.trim(),
+        commune: form.commune.value.trim(),
+        prestation: form.prestation.value,
+        consentement: 'oui'
+      };
+      var precision = form.querySelector('input[name=precision]').value.trim();
+      if (precision) data.precision = precision;
+      var message = form.message.value.trim();
+      if (message) data.message = message;
+      if (sendErr) sendErr.textContent = '';
+      submitBtn.disabled = true;
+      var label = submitBtn.textContent;
+      submitBtn.textContent = 'Envoi en cours…';
+      fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || res.success !== true) throw new Error('send failed');
+        form.querySelector('.ok').classList.add('show');
+      })
+      .catch(function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = label;
+        showSendErr();
+      });
     });
   }
 })();
 
-/* gestion des cookies (test : rien n'est chargé) */
+/* gestion des cookies */
 (function(){
   var d=document, ck=d.getElementById('ck'), op=d.getElementById('ck-open'); if(!ck) return;
   var KEY='jes-cookies';
@@ -194,7 +236,7 @@
   d.addEventListener('keydown',function(e){if(e.key==='Escape'&&!ck.hidden)hide();});
 })();
 
-/* créneau d'appel (test : rien n'est envoyé) */
+/* créneau d'appel (envoi via Web3Forms) */
 (function(){
   var d=document, box=d.getElementById('days'); if(!box) return;
   var sel=null, today=new Date(), n=0, i=1;
@@ -212,13 +254,36 @@
     })(dt);
   }
   d.getElementById('book-go').addEventListener('click',function(){
-    var f=d.getElementById('b-tel'), t=d.getElementById('b-t'), err=f.querySelector('.err'), msg=d.getElementById('book-msg'), ok=d.getElementById('book-ok');
+    var btn=d.getElementById('book-go'), f=d.getElementById('b-tel'), t=d.getElementById('b-t'), err=f.querySelector('.err'), msg=d.getElementById('book-msg'), ok=d.getElementById('book-ok');
     var bad=t.value.replace(/\D/g,'').length<9;
     f.classList.toggle('bad',bad); err.textContent=bad?'Merci d\u2019indiquer un numéro valide.':'';
     if(bad){t.focus();return;}
     if(!sel){box.querySelector('.day').focus();msg.textContent='Choisissez d\u2019abord un jour.';ok.classList.add('show');return;}
-    msg.innerHTML='Créneau noté : '+sel+' à '+d.getElementById('b-h').value+'. Je vous appelle.<br><small style="font-weight:600;opacity:.85">Version test : rien n\u2019est envoyé.</small>';
-    ok.classList.add('show');
+    var label=btn.textContent;
+    btn.disabled=true; btn.textContent='Envoi en cours…';
+    fetch('https://api.web3forms.com/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({
+        access_key:'3539b9f5-019f-48ce-b4a9-4c29b1657aac',
+        subject:'Demande de créneau d\'appel - Les Jardins de JES',
+        from_name:'Site Les Jardins de JES',
+        jour:sel,
+        heure:d.getElementById('b-h').value,
+        telephone:t.value.trim()
+      })
+    })
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(!res||res.success!==true)throw new Error('send failed');
+      msg.textContent='Créneau noté : '+sel+' à '+d.getElementById('b-h').value+'. Je vous appelle.';
+      ok.classList.add('show');
+    })
+    .catch(function(){
+      btn.disabled=false; btn.textContent=label;
+      msg.textContent='L\u2019envoi n\u2019a pas fonctionné. Appelez-moi au 06 08 27 95 54.';
+      ok.classList.add('show');
+    });
   });
 })();
 
