@@ -1,6 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /mentions-legales.html
-Disallow: /politique-confidentialite.html
 
 Sitemap: https://lesjardinsdejes.fr/sitemap.xml
